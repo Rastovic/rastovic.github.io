@@ -2,90 +2,406 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Rastović Apps</title>
-<meta name="description" content="Small, private Android apps by Jelena Rastović.">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rastović</title>
+<meta name="description" content="Rastović - small, private Android apps: OVRLD, Tideline and LockIn. Your data stays on your phone.">
+<meta name="theme-color" content="#05060a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;500;800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
+  /* Layout: a fixed WebGL "planet" behind a single scrolling column; the apps
+     orbit it in the 3D scene and sit as cards in the page. Dark only. */
   :root {
-    --bg: #f6f7f9; --surface: #ffffff; --ink: #14161c; --muted: #5b6070;
-    --stroke: #e3e6ec; --lockin: #0f7a5c; --tideline: #3b6fe0; --ovrld: #101011;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #0a0d13; --surface: #131722; --ink: #e8eaf0; --muted: #a0a6b4;
-      --stroke: #232734; --lockin: #5fd3a8; --tideline: #7aa2ff; --ovrld: #ebe6dc;
-    }
+    --void: #05060a;
+    --deep: #0b0d14;
+    --glass: rgba(20, 24, 36, .55);
+    --rim: rgba(160, 175, 210, .16);
+    --ink: #e9ecf5;
+    --dim: #8c93a8;
+    --ovrld: #ff5a36;
+    --tideline: #5b86ff;
+    --lockin: #5fd3a8;
+    --display: "Unbounded", "Arial Black", system-ui, sans-serif;
+    --body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+    color-scheme: dark;
   }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink);
-         font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-  main { max-width: 760px; margin: 0 auto; padding: 56px 16px 64px; }
-  header h1 { font-size: 2.2rem; line-height: 1.15; margin: 0 0 8px; letter-spacing: -0.02em; }
-  header p { color: var(--muted); margin: 0; max-width: 34rem; }
-  .apps { display: grid; gap: 16px; margin: 40px 0; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
-  .card { background: var(--surface); border: 1px solid var(--stroke); border-radius: 20px; padding: 24px;
-          position: relative; overflow: hidden; }
-  .card::before { content: ""; position: absolute; top: 0; left: 24px; width: 32px; height: 3px;
-                  border-radius: 0 0 3px 3px; background: var(--c); }
-  .badge { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center;
-           font-weight: 700; font-size: 1.2rem; color: var(--surface); background: var(--c); margin-bottom: 14px; }
-  .card h2 { margin: 0 0 6px; font-size: 1.25rem; }
-  .card p { margin: 0 0 16px; color: var(--muted); }
-  .card ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 16px; flex-wrap: wrap; }
-  .card a { color: var(--c); font-weight: 600; text-decoration: none; }
-  .card a:hover { text-decoration: underline; }
-  .lockin { --c: var(--lockin); }
-  .tideline { --c: var(--tideline); }
-  .ovrld { --c: var(--ovrld); }
-  .promise { border-top: 1px solid var(--stroke); padding-top: 24px; color: var(--muted); }
-  .promise strong { color: var(--ink); }
-  footer { margin-top: 40px; color: var(--muted); font-size: 0.95rem; }
-  footer a { color: inherit; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--void); color: var(--ink); font: 17px/1.6 var(--body); overflow-x: hidden; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 6px; }
+
+  #space { position: fixed; inset: 0; width: 100%; height: 100%; display: block; z-index: 0;
+           background: radial-gradient(120% 80% at 70% 20%, #121a33 0%, var(--void) 60%); }
+  .grain { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: .07; mix-blend-mode: overlay;
+           background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  main { position: relative; z-index: 2; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding-inline: 20px; }
+
+  /* top bar */
+  .bar { position: fixed; top: 0; left: 0; right: 0; z-index: 5; padding: calc(14px + env(safe-area-inset-top, 0px)) 20px 14px;
+         display: flex; justify-content: space-between; align-items: center; pointer-events: none; }
+  .bar > * { pointer-events: auto; }
+  .mark { font: 500 13px/1 var(--mono); letter-spacing: .28em; text-transform: uppercase; text-decoration: none; }
+  .bar nav { display: flex; gap: 6px; }
+  .bar nav a { font: 500 12px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; text-decoration: none;
+               padding: 9px 12px; border: 1px solid var(--rim); border-radius: 999px; background: rgba(5,6,10,.45);
+               backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: border-color .2s; }
+  .bar nav a:hover { border-color: rgba(233,236,245,.5); }
+
+  /* hero */
+  .hero { min-height: 100svh; display: flex; flex-direction: column; justify-content: center; gap: 28px; padding-block: 120px 80px; }
+  .hero > * { min-width: 0; }
+  .eyebrow { flex-wrap: wrap; }
+  .eyebrow { font: 500 12px/1.4 var(--mono); letter-spacing: .3em; text-transform: uppercase; color: var(--dim); display: flex; gap: 12px; align-items: center; }
+  .eyebrow::before { content: ""; width: 34px; height: 1px; background: currentColor; }
+  /* Sized from the viewport so all eight letters fit on one line at any width;
+     Unbounded is wide (about .8em a letter). */
+  h1 { margin: 0; font: 800 clamp(34px, calc((100vw - 48px) / 6.9), 176px)/.9 var(--display); letter-spacing: -.035em;
+       text-transform: uppercase; white-space: nowrap; }
+  /* Padding above each letter so the gradient also paints the accent on Ć. */
+  h1 .l { display: inline-block; padding-top: .2em; margin-top: -.2em; background: linear-gradient(180deg, #fff 0%, #c9d2ee 55%, #7d89b3 100%);
+          -webkit-background-clip: text; background-clip: text; color: transparent;
+          animation: rise 1.1s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--i) * 70ms + 150ms); }
+  @keyframes rise { from { transform: translateY(.35em) rotateX(70deg); filter: blur(10px); opacity: .15; } }
+  .lede { max-width: 30rem; font-size: clamp(18px, 2.2vw, 22px); color: #c6cbdb; margin: 0; }
+  .lede b { color: var(--ink); font-weight: 600; }
+  .cue { margin-top: 18px; display: inline-flex; gap: 12px; align-items: center; font: 500 12px/1 var(--mono);
+         letter-spacing: .18em; text-transform: uppercase; color: var(--dim); text-decoration: none; width: max-content; }
+  .cue i { width: 22px; height: 34px; border: 1px solid var(--rim); border-radius: 12px; position: relative; }
+  .cue i::after { content: ""; position: absolute; left: 50%; top: 7px; width: 3px; height: 7px; border-radius: 2px;
+                  background: var(--ink); transform: translateX(-50%); animation: wheel 1.8s ease-in-out infinite; }
+  @keyframes wheel { 60% { transform: translate(-50%, 9px); opacity: 0; } 61% { transform: translate(-50%, 0); opacity: 0; } }
+
+  /* section heads */
+  section { padding-block: 72px; }
+  .head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 34px; }
+  h2 { margin: 0; font: 500 clamp(30px, 5vw, 56px)/1 var(--display); letter-spacing: -.02em; text-transform: uppercase; }
+  .count { font: 500 12px/1 var(--mono); letter-spacing: .2em; color: var(--dim); text-transform: uppercase; }
+
+  /* app cards */
+  .apps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; perspective: 1200px; }
+  .card { --c: var(--ink); position: relative; border-radius: 26px; padding: 26px 24px 22px; min-width: 0;
+          background: var(--glass); border: 1px solid var(--rim);
+          backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%);
+          transform-style: preserve-3d; transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+          transition: transform .5s cubic-bezier(.2,.8,.2,1), border-color .3s; display: flex; flex-direction: column; gap: 16px; }
+  .card::before { content: ""; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .3s;
+                  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 0%), color-mix(in srgb, var(--c) 55%, transparent), transparent 60%);
+                  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+                  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); padding: 1px; }
+  .card:hover::before, .card:focus-within::before { opacity: 1; }
+  .card:hover { border-color: color-mix(in srgb, var(--c) 40%, var(--rim)); }
+  .card.ovrld { --c: var(--ovrld); } .card.tideline { --c: var(--tideline); } .card.lockin { --c: var(--lockin); }
+  .top { display: flex; align-items: center; gap: 14px; transform: translateZ(40px); }
+  .top img { width: 58px; height: 58px; border-radius: 16px; box-shadow: 0 10px 30px -8px color-mix(in srgb, var(--c) 60%, transparent); }
+  .top h3 { margin: 0; font: 800 24px/1 var(--display); letter-spacing: -.01em; }
+  .top small { display: block; margin-top: 6px; font: 500 11px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--c); }
+  .card p { margin: 0; color: #c6cbdb; transform: translateZ(20px); }
+  .facts { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  .facts li { font: 500 11.5px/1 var(--mono); padding: 7px 9px; border-radius: 999px; border: 1px solid var(--rim); color: #b8bfd2; }
+  .links { margin-top: auto; display: flex; gap: 16px; padding-top: 8px; border-top: 1px solid var(--rim); }
+  .links a { font: 500 13px/1 var(--mono); text-decoration: none; color: var(--c); padding-top: 12px; }
+  .links a:hover { text-decoration: underline; text-underline-offset: 4px; }
+
+  /* promise */
+  .promise { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+  .p { padding: 26px 24px; border-radius: 22px; border: 1px solid var(--rim); background: rgba(11,13,20,.6); min-width: 0; }
+  .p strong { display: inline-block; font: 800 clamp(34px, 5vw, 54px)/1 var(--display); letter-spacing: -.03em; margin-bottom: 10px;
+              background: linear-gradient(90deg, var(--ovrld), var(--tideline) 55%, var(--lockin)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .p span { display: block; color: #c6cbdb; }
+  .note { margin-top: 18px; color: var(--dim); font-size: 15px; max-width: 62ch; }
+
+  /* reveal on scroll: visible at rest, only lifted when JS + motion allowed */
+  .js .reveal { opacity: 0; transform: translateY(26px); transition: opacity .9s ease, transform .9s cubic-bezier(.2,.8,.2,1); }
+  .js .reveal.in { opacity: 1; transform: none; }
+
+  footer { padding-block: 70px calc(50px + env(safe-area-inset-bottom, 0px)); color: var(--dim); }
+  .foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 18px; align-items: end; border-top: 1px solid var(--rim); padding-top: 28px; }
+  .foot .big { font: 500 clamp(22px, 3.4vw, 34px)/1.15 var(--display); color: var(--ink); text-transform: uppercase; letter-spacing: -.01em; }
+  .mail { font: 500 15px/1 var(--mono); color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--rim); padding-bottom: 4px; }
+  .mail:hover { border-color: var(--ink); }
+
+  @media (max-width: 860px) {
+    .apps, .promise { grid-template-columns: 1fr; }
+    .bar nav a.hide-s { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+    .js .reveal { opacity: 1; transform: none; }
+  }
 </style>
 </head>
 <body>
-<main>
-  <header>
-    <h1>Rastović Apps</h1>
-    <p>Small Android apps that keep your data on your phone. No accounts, no cloud.</p>
-  </header>
+<canvas id="space" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
 
-  <section class="apps">
-    <article class="card ovrld">
-      <div class="badge" aria-hidden="true">O</div>
-      <h2>OVRLD</h2>
-      <p>A gym log for progressive overload. Log kg × reps, beat last time, plan the week.</p>
-      <ul>
-        <li><a href="ovrld/privacy/">Privacy policy</a></li>
-      </ul>
-    </article>
+<header class="bar">
+  <a class="mark" href="#top">Rastović</a>
+  <nav aria-label="Sections">
+    <a href="#apps">Apps</a>
+    <a class="hide-s" href="#promise">Privacy</a>
+    <a href="#contact">Contact</a>
+  </nav>
+</header>
 
-    <article class="card tideline">
-      <div class="badge" aria-hidden="true">T</div>
-      <h2>Tideline</h2>
-      <p>A personal record of mood, body and habits. Log things your way and see them side by side.</p>
-      <ul>
-        <li><a href="tideline/privacy/">Privacy policy</a></li>
-      </ul>
-    </article>
+<main id="top">
+  <div class="wrap hero">
+    <div class="eyebrow">Independent Android apps · Podgorica</div>
+    <h1 aria-label="Rastović"><span class="l" style="--i:0">R</span><span class="l" style="--i:1">a</span><span class="l" style="--i:2">s</span><span class="l" style="--i:3">t</span><span class="l" style="--i:4">o</span><span class="l" style="--i:5">v</span><span class="l" style="--i:6">i</span><span class="l" style="--i:7">ć</span></h1>
+    <p class="lede">Small apps for the things you do every day. <b>No accounts. No cloud.</b> What you record stays on your phone.</p>
+    <a class="cue" href="#apps"><i aria-hidden="true"></i>Three apps in orbit</a>
+  </div>
 
-    <article class="card lockin">
-      <div class="badge" aria-hidden="true">L</div>
-      <h2>LockIn</h2>
-      <p>Screen time you earned. Focus first, then spend the time you banked.</p>
-      <ul>
-        <li><a href="lockin/privacy/">Privacy policy</a></li>
-      </ul>
-    </article>
+  <section id="apps" class="wrap">
+    <div class="head reveal">
+      <h2>The apps</h2>
+      <span class="count">03 · Android · closed testing</span>
+    </div>
+    <div class="apps">
+      <article class="card ovrld reveal" data-color="#ff5a36">
+        <div class="top">
+          <img src="assets/ovrld.png" alt="" width="58" height="58">
+          <div><h3>OVRLD</h3><small>Gym log</small></div>
+        </div>
+        <p>Progressive overload made simple. Log kg × reps, see what you did last time, beat it, and plan the week.</p>
+        <ul class="facts"><li>supersets</li><li>rest timer</li><li>strength graphs</li><li>no internet access</li></ul>
+        <div class="links"><a href="ovrld/privacy/">Privacy policy →</a></div>
+      </article>
+
+      <article class="card tideline reveal" data-color="#5b86ff">
+        <div class="top">
+          <img src="assets/tideline.png" alt="" width="58" height="58">
+          <div><h3>Tideline</h3><small>Mood &amp; habits</small></div>
+        </div>
+        <p>A personal record of mood, body and habits. Log anything your way and see it side by side, day after day.</p>
+        <ul class="facts"><li>your own markers</li><li>reports</li><li>cycle</li><li>profiles</li></ul>
+        <div class="links"><a href="tideline/privacy/">Privacy policy →</a></div>
+      </article>
+
+      <article class="card lockin reveal" data-color="#5fd3a8">
+        <div class="top">
+          <img src="assets/lockin.png" alt="" width="58" height="58">
+          <div><h3>LockIn</h3><small>Earned screen time</small></div>
+        </div>
+        <p>Plan your day, earn minutes by doing it, spend them on the apps you scroll. The number keeps you honest.</p>
+        <ul class="facts"><li>focus timer</li><li>habits</li><li>app blocking</li><li>no internet access</li></ul>
+        <div class="links"><a href="lockin/privacy/">Privacy policy →</a></div>
+      </article>
+    </div>
   </section>
 
-  <p class="promise"><strong>The same promise in every app:</strong> what you record stays on your device.
-    Where an app shows ads, they are banner ads served by Google AdMob, and they never see your entries.</p>
+  <section id="promise" class="wrap">
+    <div class="head reveal"><h2>The promise</h2><span class="count">Every app, every version</span></div>
+    <div class="promise">
+      <div class="p reveal"><strong>0</strong><span>accounts. You never sign up, so there is nothing to sign into or leak.</span></div>
+      <div class="p reveal"><strong>0</strong><span>servers of ours. Your entries live in the app's storage on your phone.</span></div>
+      <div class="p reveal"><strong>1</strong><span>file, when you want a backup. You make it, you keep it, you restore it.</span></div>
+    </div>
+    <p class="note reveal">OVRLD and LockIn have no internet access at all. Tideline shows banner ads served by Google AdMob, and those never see what you log. Each app's privacy policy says exactly what it does.</p>
+  </section>
 
-  <footer>
-    Jelena Rastović · Podgorica, Montenegro ·
-    <a href="mailto:rastovic.app@gmail.com">rastovic.app@gmail.com</a>
+  <footer id="contact" class="wrap">
+    <div class="foot">
+      <div class="big">Questions, bugs, ideas.</div>
+      <a class="mail" href="mailto:rastovic.app@gmail.com">rastovic.app@gmail.com</a>
+    </div>
+    <p>Jelena Rastović · Podgorica, Montenegro · © 2026</p>
   </footer>
 </main>
+
+<script>
+  document.documentElement.classList.add('js');
+  const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Reveal on scroll. Content is visible without JS and with reduced motion,
+  // and three independent triggers make sure nothing can stay hidden: an
+  // observer, a plain scroll check, and a timeout that shows everything.
+  const pending = new Set(document.querySelectorAll('.reveal'));
+  const show = (el) => { el.classList.add('in'); pending.delete(el); };
+  pending.forEach((el, i) => { el.style.transitionDelay = (i % 3) * 90 + 'ms'; });
+  if (calm) pending.forEach(show);
+  const check = () => pending.forEach((el) => { if (el.getBoundingClientRect().top < innerHeight * .92) show(el); });
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) show(e.target); }), { threshold: .1 });
+    pending.forEach((el) => io.observe(el));
+  }
+  addEventListener('scroll', () => requestAnimationFrame(check), { passive: true });
+  addEventListener('load', check); check();
+  setTimeout(() => pending.forEach(show), 3000);
+
+  // Cards tilt toward the pointer and light their rim where it is.
+  if (!calm) document.querySelectorAll('.card').forEach((card) => {
+    card.addEventListener('pointermove', (e) => {
+      const r = card.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+      card.style.setProperty('--mx', x * 100 + '%'); card.style.setProperty('--my', y * 100 + '%');
+      card.style.setProperty('--ry', (x - .5) * 10 + 'deg'); card.style.setProperty('--rx', (.5 - y) * 8 + 'deg');
+    });
+    card.addEventListener('pointerleave', () => { card.style.setProperty('--rx', '0deg'); card.style.setProperty('--ry', '0deg'); });
+  });
+</script>
+
+<script type="module">
+  // The planet: a sphere of points breathing on 3D noise, ringed by three
+  // orbits - one per app, each with a glowing satellite in the app's colour.
+  // Three.js is MIT-licensed; everything below is original.
+  import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+
+  const canvas = document.getElementById('space');
+  const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let renderer;
+  try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true }); }
+  catch (e) { /* no WebGL: the CSS gradient behind stays */ }
+
+  if (renderer) {
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(42, 1, .1, 100);
+    camera.position.set(0, 0, 9);
+
+    const world = new THREE.Group();
+    scene.add(world);
+
+    // Points on a Fibonacci sphere.
+    const N = innerWidth < 700 ? 6000 : 12000;
+    const pos = new Float32Array(N * 3), seed = new Float32Array(N);
+    const ga = Math.PI * (3 - Math.sqrt(5));
+    for (let i = 0; i < N; i++) {
+      const y = 1 - (i / (N - 1)) * 2, r = Math.sqrt(1 - y * y), t = ga * i;
+      pos.set([Math.cos(t) * r, y, Math.sin(t) * r], i * 3); seed[i] = Math.random();
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('seed', new THREE.BufferAttribute(seed, 1));
+
+    const uniforms = {
+      uTime: { value: 0 }, uPixel: { value: renderer.getPixelRatio() },
+      uA: { value: new THREE.Color('#5b86ff') }, uB: { value: new THREE.Color('#ff5a36') },
+      uC: { value: new THREE.Color('#5fd3a8') }, uMouse: { value: new THREE.Vector2() },
+    };
+    const planet = new THREE.Points(geo, new THREE.ShaderMaterial({
+      uniforms, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      vertexShader: `
+        uniform float uTime, uPixel; uniform vec2 uMouse; attribute float seed;
+        varying float vH; varying float vSeed; varying float vFront;
+        // 3D simplex noise (Ashima Arts / Stefan Gustavson, MIT).
+        vec3 mod289(vec3 x){return x-floor(x*(1./289.))*289.;} vec4 mod289(vec4 x){return x-floor(x*(1./289.))*289.;}
+        vec4 permute(vec4 x){return mod289(((x*34.)+1.)*x);} vec4 tis(vec4 r){return 1.79284291400159-.85373472095314*r;}
+        float snoise(vec3 v){const vec2 C=vec2(1./6.,1./3.);const vec4 D=vec4(0.,.5,1.,2.);
+          vec3 i=floor(v+dot(v,C.yyy));vec3 x0=v-i+dot(i,C.xxx);vec3 g=step(x0.yzx,x0.xyz);vec3 l=1.-g;
+          vec3 i1=min(g.xyz,l.zxy);vec3 i2=max(g.xyz,l.zxy);vec3 x1=x0-i1+C.xxx;vec3 x2=x0-i2+C.yyy;vec3 x3=x0-D.yyy;
+          i=mod289(i);vec4 p=permute(permute(permute(i.z+vec4(0.,i1.z,i2.z,1.))+i.y+vec4(0.,i1.y,i2.y,1.))+i.x+vec4(0.,i1.x,i2.x,1.));
+          float n_=.142857142857;vec3 ns=n_*D.wyz-D.xzx;vec4 j=p-49.*floor(p*ns.z*ns.z);vec4 x_=floor(j*ns.z);vec4 y_=floor(j-7.*x_);
+          vec4 x=x_*ns.x+ns.yyyy;vec4 y=y_*ns.x+ns.yyyy;vec4 h=1.-abs(x)-abs(y);vec4 b0=vec4(x.xy,y.xy);vec4 b1=vec4(x.zw,y.zw);
+          vec4 s0=floor(b0)*2.+1.;vec4 s1=floor(b1)*2.+1.;vec4 sh=-step(h,vec4(0.));vec4 a0=b0.xzyw+s0.xzyw*sh.xxyy;vec4 a1=b1.xzyw+s1.xzyw*sh.zzww;
+          vec3 p0=vec3(a0.xy,h.x);vec3 p1=vec3(a0.zw,h.y);vec3 p2=vec3(a1.xy,h.z);vec3 p3=vec3(a1.zw,h.w);
+          vec4 norm=tis(vec4(dot(p0,p0),dot(p1,p1),dot(p2,p2),dot(p3,p3)));p0*=norm.x;p1*=norm.y;p2*=norm.z;p3*=norm.w;
+          vec4 m=max(.6-vec4(dot(x0,x0),dot(x1,x1),dot(x2,x2),dot(x3,x3)),0.);m=m*m;
+          return 42.*dot(m*m,vec4(dot(p0,x0),dot(p1,x1),dot(p2,x2),dot(p3,x3)));}
+        void main(){
+          vec3 p = position;
+          float n = snoise(p * 1.6 + vec3(0., uTime * .18, uTime * .1));
+          float pull = smoothstep(.2, 1., dot(normalize(p), normalize(vec3(uMouse, .8))));
+          vH = n; vSeed = seed;
+          p *= 2.2 + n * .28 + pull * .18;
+          vec4 mv = modelViewMatrix * vec4(p, 1.);
+          vFront = smoothstep(-2.5, 1.5, mv.z + 9.);
+          gl_Position = projectionMatrix * mv;
+          gl_PointSize = (1.4 + seed * 2.2 + max(n, 0.) * 2.) * uPixel * (8. / -mv.z);
+        }`,
+      fragmentShader: `
+        uniform vec3 uA, uB, uC; uniform float uTime;
+        varying float vH; varying float vSeed; varying float vFront;
+        void main(){
+          vec2 c = gl_PointCoord - .5; float d = length(c); if (d > .5) discard;
+          float glow = smoothstep(.5, 0., d);
+          vec3 col = mix(uA, uB, smoothstep(-.2, .6, vH));
+          col = mix(col, uC, smoothstep(.55, 1., vSeed) * .6);
+          float twinkle = .65 + .35 * sin(uTime * 2. + vSeed * 40.);
+          gl_FragColor = vec4(col, glow * (.25 + .75 * vFront) * twinkle * .9);
+        }`,
+    }));
+    world.add(planet);
+
+    // Three orbits, one satellite each.
+    const orbits = [
+      { color: '#ff5a36', r: 3.3, tilt: [1.2, .2], speed: .23 },
+      { color: '#5b86ff', r: 3.9, tilt: [1.45, -.5], speed: .17 },
+      { color: '#5fd3a8', r: 4.5, tilt: [1.05, .8], speed: .13 },
+    ].map((o, i) => {
+      const g = new THREE.Group(); g.rotation.set(o.tilt[0], o.tilt[1], 0); world.add(g);
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(o.r, .006, 6, 220),
+        new THREE.MeshBasicMaterial({ color: o.color, transparent: true, opacity: .32 }));
+      g.add(ring);
+      const sat = new THREE.Mesh(new THREE.SphereGeometry(.075, 20, 20), new THREE.MeshBasicMaterial({ color: o.color }));
+      const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(o.color), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+      halo.scale.setScalar(.9); sat.add(halo); g.add(sat);
+      return { ...o, sat, phase: i * 2.1 };
+    });
+
+    // Far stars.
+    const S = 1400, sp = new Float32Array(S * 3);
+    for (let i = 0; i < S; i++) {
+      const r = 18 + Math.random() * 30, th = Math.random() * Math.PI * 2, ph = Math.acos(2 * Math.random() - 1);
+      sp.set([r * Math.sin(ph) * Math.cos(th), r * Math.cos(ph), r * Math.sin(ph) * Math.sin(th)], i * 3);
+    }
+    const starGeo = new THREE.BufferGeometry(); starGeo.setAttribute('position', new THREE.BufferAttribute(sp, 3));
+    const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: '#9fb0dd', size: .06, transparent: true, opacity: .7, depthWrite: false }));
+    scene.add(stars);
+
+    function glowTexture(color) {
+      const c = document.createElement('canvas'); c.width = c.height = 64;
+      const x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+      g.addColorStop(0, color); g.addColorStop(.25, color + 'aa'); g.addColorStop(1, color + '00');
+      x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c);
+    }
+
+    // Scroll moves the planet aside; hovering a card tints it in that app's colour.
+    let scrollT = 0, targetMouse = new THREE.Vector2(), tint = null;
+    const base = { a: new THREE.Color('#5b86ff'), b: new THREE.Color('#ff5a36') };
+    addEventListener('scroll', () => { scrollT = Math.min(scrollY / innerHeight, 2); }, { passive: true });
+    addEventListener('pointermove', (e) => targetMouse.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1), { passive: true });
+    document.querySelectorAll('.card').forEach((card) => {
+      card.addEventListener('pointerenter', () => tint = new THREE.Color(card.dataset.color));
+      card.addEventListener('pointerleave', () => tint = null);
+    });
+
+    function resize() {
+      const w = innerWidth, h = innerHeight;
+      renderer.setSize(w, h, false); camera.aspect = w / h;
+      camera.position.z = w < 700 ? 12.5 : 9; camera.updateProjectionMatrix();
+    }
+    addEventListener('resize', resize); resize();
+
+    const clock = new THREE.Clock();
+    let running = true;
+    document.addEventListener('visibilitychange', () => { running = !document.hidden; if (running) loop(); });
+
+    function frame() {
+      const t = calm ? 6 : clock.getElapsedTime();
+      uniforms.uTime.value = t;
+      uniforms.uMouse.value.lerp(targetMouse, .05);
+      const wide = innerWidth >= 860;
+      const s = Math.min(scrollT, 1);
+      world.position.x = THREE.MathUtils.lerp(wide ? 2.2 : 0, wide ? 3.6 : 0, s);
+      world.position.y = THREE.MathUtils.lerp(wide ? 0 : 1.6, wide ? -.4 : 3.2, s);
+      world.rotation.y = t * .06 + uniforms.uMouse.value.x * .25;
+      world.rotation.x = -uniforms.uMouse.value.y * .15;
+      orbits.forEach((o) => {
+        const a = t * o.speed + o.phase;
+        o.sat.position.set(Math.cos(a) * o.r, Math.sin(a) * o.r, 0);
+      });
+      stars.rotation.y = t * .01;
+      const toA = tint || base.a, toB = tint ? tint.clone().offsetHSL(.04, 0, .1) : base.b;
+      uniforms.uA.value.lerp(toA, .04); uniforms.uB.value.lerp(toB, .04);
+      renderer.render(scene, camera);
+    }
+    function loop() { if (!running) return; frame(); if (!calm) requestAnimationFrame(loop); }
+    loop();
+  }
+</script>
 </body>
 </html>

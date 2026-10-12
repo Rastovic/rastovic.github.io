@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Rastović</title>
-<meta name="description" content="Rastović - small, private Android apps: OVRLD, Tideline and LockIn. Your data stays on your phone.">
+<meta name="description" content="Rastović - software engineer building backend systems and small, private mobile apps: OVRLD, Tideline and LockIn.">
 <meta name="theme-color" content="#05060a">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -106,6 +106,21 @@
   .links a { font: 500 13px/1 var(--mono); text-decoration: none; color: var(--c); padding-top: 12px; }
   .links a:hover { text-decoration: underline; text-underline-offset: 4px; }
 
+  /* skills */
+  .skills { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+  .skill { --c: var(--ink); position: relative; min-width: 0; padding: 24px 22px 22px; border-radius: 22px;
+           border: 1px solid var(--rim); background: rgba(11,13,20,.55); overflow: hidden;
+           backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: border-color .3s, transform .4s cubic-bezier(.2,.8,.2,1); }
+  .skill::after { content: ""; position: absolute; left: 22px; right: 22px; top: 0; height: 2px; border-radius: 0 0 2px 2px;
+                  background: linear-gradient(90deg, var(--c), transparent); transform-origin: left; transform: scaleX(.25); transition: transform .5s cubic-bezier(.2,.8,.2,1); }
+  .skill:hover { border-color: color-mix(in srgb, var(--c) 45%, var(--rim)); transform: translateY(-4px); }
+  .skill:hover::after { transform: scaleX(1); }
+  .skill .k { font: 500 11px/1 var(--mono); letter-spacing: .2em; color: var(--c); }
+  .skill h3 { margin: 14px 0 8px; font: 800 22px/1 var(--display); letter-spacing: -.01em; text-transform: uppercase; }
+  .skill p { margin: 0 0 16px; color: #b9bfd0; font-size: 15px; }
+  .skill ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  .skill li { font: 500 11.5px/1 var(--mono); padding: 7px 9px; border-radius: 999px; border: 1px solid var(--rim); color: #c6cbdb; }
+
   /* promise */
   .promise { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
   .p { padding: 26px 24px; border-radius: 22px; border: 1px solid var(--rim); background: rgba(11,13,20,.6); min-width: 0; }
@@ -124,8 +139,12 @@
   .mail { font: 500 15px/1 var(--mono); color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--rim); padding-bottom: 4px; }
   .mail:hover { border-color: var(--ink); }
 
+  @media (max-width: 1000px) { .skills { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (max-width: 860px) {
     .apps, .promise { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 520px) {
+    .skills { grid-template-columns: 1fr; }
     .bar nav a.hide-s { display: none; }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -141,19 +160,52 @@
 <header class="bar">
   <a class="mark" href="#top">Rastović</a>
   <nav aria-label="Sections">
+    <a class="hide-s" href="#work">Work</a>
     <a href="#apps">Apps</a>
-    <a class="hide-s" href="#promise">Privacy</a>
     <a href="#contact">Contact</a>
   </nav>
 </header>
 
 <main id="top">
   <div class="wrap hero">
-    <div class="eyebrow">Independent Android apps · Podgorica</div>
+    <div class="eyebrow">Software · Apps</div>
     <h1 aria-label="Rastović"><span class="l" style="--i:0">R</span><span class="l" style="--i:1">a</span><span class="l" style="--i:2">s</span><span class="l" style="--i:3">t</span><span class="l" style="--i:4">o</span><span class="l" style="--i:5">v</span><span class="l" style="--i:6">i</span><span class="l" style="--i:7">ć</span></h1>
-    <p class="lede">Small apps for the things you do every day. <b>No accounts. No cloud.</b> What you record stays on your phone.</p>
-    <a class="cue" href="#apps"><i aria-hidden="true"></i>Three apps in orbit</a>
+    <p class="lede">Software engineer building <b>backend systems</b> and <b>small, private mobile apps</b>.</p>
+    <a class="cue" href="#work"><i aria-hidden="true"></i>See the work</a>
   </div>
+
+  <section id="work" class="wrap">
+    <div class="head reveal">
+      <h2>What I work with</h2>
+      <span class="count">04 · disciplines</span>
+    </div>
+    <div class="skills">
+      <div class="skill reveal" style="--c: var(--tideline)">
+        <span class="k">01</span>
+        <h3>Backend</h3>
+        <p>Services and APIs that hold up under real traffic.</p>
+        <ul><li>Java</li><li>Spring Boot</li><li>SQL</li><li>Microservices</li></ul>
+      </div>
+      <div class="skill reveal" style="--c: var(--ovrld)">
+        <span class="k">02</span>
+        <h3>Mobile</h3>
+        <p>Android apps from first sketch to Play Store.</p>
+        <ul><li>Flutter</li><li>Dart</li><li>Android</li><li>SQLite</li></ul>
+      </div>
+      <div class="skill reveal" style="--c: var(--lockin)">
+        <span class="k">03</span>
+        <h3>Frontend</h3>
+        <p>Interfaces that are fast, clear and a little alive.</p>
+        <ul><li>Angular</li><li>TypeScript</li><li>WebGL</li><li>Three.js</li></ul>
+      </div>
+      <div class="skill reveal" style="--c: #c9a4ff">
+        <span class="k">04</span>
+        <h3>Security</h3>
+        <p>Building with the attacker in mind.</p>
+        <ul><li>OWASP Top 10</li><li>Secure code review</li><li>Ethical hacking</li></ul>
+      </div>
+    </div>
+  </section>
 
   <section id="apps" class="wrap">
     <div class="head reveal">
@@ -194,7 +246,7 @@
   </section>
 
   <section id="promise" class="wrap">
-    <div class="head reveal"><h2>The promise</h2><span class="count">Every app, every version</span></div>
+    <div class="head reveal"><h2>The promise</h2><span class="count">Every app I ship</span></div>
     <div class="promise">
       <div class="p reveal"><strong>0</strong><span>accounts. You never sign up, so there is nothing to sign into or leak.</span></div>
       <div class="p reveal"><strong>0</strong><span>servers of ours. Your entries live in the app's storage on your phone.</span></div>

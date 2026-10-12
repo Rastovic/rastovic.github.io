@@ -8,12 +8,12 @@
 <style>
   :root {
     --bg: #f6f7f9; --surface: #ffffff; --ink: #14161c; --muted: #5b6070;
-    --stroke: #e3e6ec; --lockin: #0f7a5c; --tideline: #3b6fe0;
+    --stroke: #e3e6ec; --lockin: #0f7a5c; --tideline: #3b6fe0; --ovrld: #101011;
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #0a0d13; --surface: #131722; --ink: #e8eaf0; --muted: #a0a6b4;
-      --stroke: #232734; --lockin: #5fd3a8; --tideline: #7aa2ff;
+      --stroke: #232734; --lockin: #5fd3a8; --tideline: #7aa2ff; --ovrld: #ebe6dc;
     }
   }
   * { box-sizing: border-box; }
@@ -36,6 +36,7 @@
   .card a:hover { text-decoration: underline; }
   .lockin { --c: var(--lockin); }
   .tideline { --c: var(--tideline); }
+  .ovrld { --c: var(--ovrld); }
   .promise { border-top: 1px solid var(--stroke); padding-top: 24px; color: var(--muted); }
   .promise strong { color: var(--ink); }
   footer { margin-top: 40px; color: var(--muted); font-size: 0.95rem; }
@@ -50,6 +51,15 @@
   </header>
 
   <section class="apps">
+    <article class="card ovrld">
+      <div class="badge" aria-hidden="true">O</div>
+      <h2>OVRLD</h2>
+      <p>A gym log for progressive overload. Log kg × reps, beat last time, plan the week.</p>
+      <ul>
+        <li><a href="ovrld/privacy/">Privacy policy</a></li>
+      </ul>
+    </article>
+
     <article class="card tideline">
       <div class="badge" aria-hidden="true">T</div>
       <h2>Tideline</h2>
@@ -70,7 +80,7 @@
   </section>
 
   <p class="promise"><strong>The same promise in every app:</strong> what you record stays on your device.
-    The free versions show a few banner ads, served by Google AdMob, and those ads never see your entries.</p>
+    Where an app shows ads, they are banner ads served by Google AdMob, and they never see your entries.</p>
 
   <footer>
     Jelena Rastović · Podgorica, Montenegro ·
